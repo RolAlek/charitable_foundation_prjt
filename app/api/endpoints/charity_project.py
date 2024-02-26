@@ -11,7 +11,7 @@ from app.api.validators import (
     cant_lt,
 )
 from app.core.user import current_superuser
-from app.utils import investing
+from app.services.utils import investing
 
 
 router = APIRouter()

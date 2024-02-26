@@ -67,7 +67,7 @@ class CRUDCharityProject(CRUDBase):
             {
                 'name': project[0],
                 'duration': project[2] - project[1],
-                'descriprion': project[3]
+                'description': project[3]
             } for project in projects
         ]
         projects = sorted(projects, key=lambda project: project['duration'])
