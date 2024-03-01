@@ -2,6 +2,10 @@ from typing import Optional
 from pydantic import BaseSettings, EmailStr
 
 
+def get_title():
+    return 'Лист1'
+
+
 class Settings(BaseSettings):
 
     app_title: str = 'Благотворительные проекты'
@@ -21,6 +25,7 @@ class Settings(BaseSettings):
     auth_provider_x509_cert_url: Optional[str] = None
     client_x509_cert_url: Optional[str] = None
     email: Optional[str] = None
+    sheet_title: str = get_title()
 
     class Config:
 

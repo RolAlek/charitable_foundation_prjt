@@ -1,11 +1,28 @@
 from datetime import datetime
+from string import ascii_uppercase
 
 from aiogoogle import Aiogoogle
 
 from app.core.config import settings
 
-
+COL = ascii_uppercase
 FORMAT = "%Y/%m/%d %H:%M:%S"
+SHEET_BODY = {
+    'properties': {
+        'sheetType': 'GRID',
+        'sheetId': 0,
+        'title': settings.sheet_title,
+        'gridProperties': {
+            'rowCount': 100,
+            'columnCount': 11
+        }
+    }
+}
+TABLE_HEADER = [
+    ['Отчет от'],
+    ['Топ проектов по скорости закрытия'],
+    ['Название проекта', 'Время сбора', 'Описание']
+]
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
@@ -16,19 +33,7 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
             'title': f'Отчет от {now_date_time}',
             'locale': 'ru_RU'
         },
-        'sheets': [
-            {
-                'properties': {
-                    'sheetType': 'GRID',
-                    'sheetId': 0,
-                    'title': 'Лист1',
-                    'gridProperties': {
-                        'rowCount': 100,
-                        'columnCount': 11
-                    }
-                }
-            }
-        ]
+        'sheets': [SHEET_BODY]
     }
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
@@ -58,33 +63,27 @@ async def set_user_permissions(
 
 async def spreadsheets_update_value(
     spreadsheet_id: str,
-    projects: list,
+    projects: list[tuple[str]],
     wrapper_services: Aiogoogle
 ) -> None:
-    now_date_time = datetime.now().strftime(FORMAT)
     service = await wrapper_services.discover('sheets', 'v4')
-    table_values = [
-        ['Отчет от', now_date_time],
-        ['Топ проектов по скорости закрытия'],
-        ['Название проекта', 'Время сбора', 'Описание']
-    ]
+    table_values = TABLE_HEADER.copy()
+    table_values[0].append(datetime.now().strftime(FORMAT))
 
     for project in projects:
-        data_row = [
-            str(project['name']),
-            str(project['duration']),
-            str(project['description'])
-        ]
+        data_row = [*project]
         table_values.append(data_row)
 
     update_body = {
         'majorDimension': 'ROWS',
         'values': table_values
     }
+    column = COL[len(max(table_values, key=len)) - 1]
+    lines_number = len(table_values)
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range='A1:E30',
+            range=f'A1:{column}{lines_number}',
             valueInputOption='USER_ENTERED',
             json=update_body
         )

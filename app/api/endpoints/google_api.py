@@ -16,6 +16,7 @@ router = APIRouter()
 
 @router.post(
     path='/',
+    response_model=list[dict[str, str]],
     dependencies=[Depends(current_superuser)]
 )
 async def get_report(
